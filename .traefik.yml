@@ -5,7 +5,7 @@ displayName: Dimdan Recirect
 type: middleware
 
 # The import path of your plugin.
-import: github.com/hxrgjo/dimdanredirect
+import: github.com/dimorder/dimdanredirect
 
 # A brief description of what your plugin is doing.
 summary: dimdan redirect middleware

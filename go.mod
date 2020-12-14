@@ -1,3 +1,3 @@
-module github.com/hxrgjo/dimdanredirect
+module github.com/dimorder/dimdanredirect
 
 go 1.14
