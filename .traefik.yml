@@ -1,5 +1,5 @@
 # The name of your plugin as displayed in the Traefik Pilot web UI.
-displayName: Name of your plugin
+displayName: Dimdan Recirect
 
 # For now, `middleware` is the only type available.
 type: middleware
@@ -8,11 +8,14 @@ type: middleware
 import: github.com/hxrgjo/dimdanredirect
 
 # A brief description of what your plugin is doing.
-summary: Description of what my plugin is doing
+summary: dimdan redirect middleware
 
 # Configuration data for your plugin.
 # This is mandatory,
 # and Traefik Pilot will try to execute the plugin with the configuration you provide as part of its startup validity tests.
 testData:
-  Headers:
-    Foo: Bar
+  DimdanDomain: localhost
+  TakeawayDomain: localhost
+  ShopDomain: localhost
+  SDeliveryDomain: localhost
+  StoreDirectoryDomain: localhost
