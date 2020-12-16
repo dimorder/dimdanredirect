@@ -2,10 +2,16 @@ package dimdanredirect
 
 import (
 	"context"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 // Config holds configuration to be passed to the plugin
@@ -15,6 +21,7 @@ type Config struct {
 	ShopDomain           string
 	SDeliveryDomain      string
 	StoreDirectoryDomain string
+	Key                  string
 }
 
 // CreateConfig populates the Config data object
@@ -31,6 +38,7 @@ type DimdanRedirect struct {
 	shopDomain           string
 	sDeliveryDomain      string
 	storeDirectoryDomain string
+	key                  string
 }
 
 // New instantiates and returns the required components used to handle a HTTP request
@@ -50,6 +58,9 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	if config.StoreDirectoryDomain == "" {
 		return nil, fmt.Errorf("StoreDirectoryDomain cannot be empty")
 	}
+	if config.Key == "" {
+		return nil, fmt.Errorf("Key cannot be empty")
+	}
 	return &DimdanRedirect{
 		next:                 next,
 		name:                 name,
@@ -58,11 +69,19 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 		shopDomain:           config.ShopDomain,
 		sDeliveryDomain:      config.SDeliveryDomain,
 		storeDirectoryDomain: config.StoreDirectoryDomain,
+		key:                  config.Key,
 	}, nil
 }
 
 func (d *DimdanRedirect) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	queryValues := req.URL.Query()
+
+	x, ok := queryValues["x"]
+	if ok {
+		rawQuery := d.decrypt(x[0])
+		queryValues, _ = url.ParseQuery(rawQuery)
+		req.URL.RawQuery = queryValues.Encode()
+	}
 
 	// dimdan
 	t, okT := queryValues["t"]
@@ -111,4 +130,55 @@ func (d *DimdanRedirect) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	d.next.ServeHTTP(rw, req)
+}
+
+func (d *DimdanRedirect) decrypt(text string) string {
+	key := []byte(d.key)
+
+	parts := strings.Split(text, "::")
+	iv, _ := hex.DecodeString(parts[0])
+	encryptedStr, _ := hex.DecodeString(parts[1])
+
+	result := make([]byte, 10000)
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		log.Println("aes.NewCipher(key) error, err: ", err.Error())
+		return ""
+	}
+	stream := cipher.NewCTR(block, iv)
+	stream.XORKeyStream(result, encryptedStr)
+
+	var trimResult []byte
+	for i := range result {
+		if result[i] == 0 {
+			break
+		}
+		trimResult = append(trimResult, result[i])
+	}
+
+	return string(trimResult)
+}
+
+func (d *DimdanRedirect) encrypt(text string) string {
+	key := []byte(d.key)
+	plaintext := []byte(text)
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		log.Println("aes.NewCipher(key) error, err: ", err.Error())
+		return ""
+	}
+
+	ciphertext := make([]byte, aes.BlockSize+len(plaintext))
+	iv := ciphertext[:aes.BlockSize]
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		log.Println("io.ReadFull error, err: ", err.Error())
+		return ""
+	}
+
+	stream := cipher.NewCTR(block, iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], plaintext)
+
+	encodedStr := hex.EncodeToString(iv) + "::" + hex.EncodeToString(ciphertext[aes.BlockSize:])
+	return encodedStr
 }
