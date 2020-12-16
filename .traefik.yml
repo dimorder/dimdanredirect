@@ -19,3 +19,4 @@ testData:
   ShopDomain: localhost
   SDeliveryDomain: localhost
   StoreDirectoryDomain: localhost
+  Key: test
