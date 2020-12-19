@@ -75,7 +75,7 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 func (d *DimdanRedirect) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	queryValues := req.URL.Query()
-	urlType := "dine-in"
+	urlType := ""
 	urlTypeDomainMap := map[string][]string{
 		"dine-in":   {d.dimdanDomain},
 		"takeaway":  {d.takeawayDomain},
@@ -124,7 +124,7 @@ func (d *DimdanRedirect) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		urlType = "directory"
 	}
 
-	if req.Host != urlTypeDomainMap[urlType][0] {
+	if urlType != "" && req.Host != urlTypeDomainMap[urlType][0] {
 		u := url.URL{
 			Scheme:   "https",
 			Host:     urlTypeDomainMap[urlType][0],
