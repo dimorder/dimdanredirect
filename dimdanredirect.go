@@ -75,6 +75,8 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 
 func (d *DimdanRedirect) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	queryValues := req.URL.Query()
+	errCount := 0
+	var u url.URL
 
 	x, ok := queryValues["x"]
 	if ok {
@@ -87,44 +89,50 @@ func (d *DimdanRedirect) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	t, okT := queryValues["t"]
 	m, okM := queryValues["m"]
 	if okT && len(t) > 0 && okM && len(m) > 0 && d.dimdanDomain != req.Host {
-		u := url.URL{Scheme: "https", Host: d.dimdanDomain, Path: req.URL.Path, RawQuery: req.URL.RawQuery}
+		errCount++
+		u = url.URL{Scheme: "https", Host: d.dimdanDomain, Path: req.URL.Path, RawQuery: req.URL.RawQuery}
 		log.Printf("m: %+v, t: %+v, redirect to %s", m, t, u.String())
-		http.Redirect(rw, req, u.String(), http.StatusSeeOther)
-		return
 	}
 
 	// takeaway
 	takeaway, ok := queryValues["takeaway"]
 	if ok && (takeaway[0] == "true" || takeaway[0] == "1") && d.takeawayDomain != req.Host {
-		u := url.URL{Scheme: "https", Host: d.takeawayDomain, Path: req.URL.Path, RawQuery: req.URL.RawQuery}
+		errCount++
+		u = url.URL{Scheme: "https", Host: d.takeawayDomain, Path: req.URL.Path, RawQuery: req.URL.RawQuery}
 		log.Printf("takeaway: %+v, redirect to %s", takeaway, u.String())
-		http.Redirect(rw, req, u.String(), http.StatusSeeOther)
-		return
 	}
 
 	// shop
 	shop, ok := queryValues["shop"]
 	if ok && (shop[0] == "true" || shop[0] == "1") && d.shopDomain != req.Host {
-		u := url.URL{Scheme: "https", Host: d.shopDomain, Path: req.URL.Path, RawQuery: req.URL.RawQuery}
+		errCount++
+		u = url.URL{Scheme: "https", Host: d.shopDomain, Path: req.URL.Path, RawQuery: req.URL.RawQuery}
 		log.Printf("shop: %+v, redirect to %s", shop, u.String())
-		http.Redirect(rw, req, u.String(), http.StatusSeeOther)
-		return
 	}
 
 	// sdelivery
 	sdelivery, ok := queryValues["sdelivery"]
-	if ok && (sdelivery[0] == "trues" || sdelivery[0] == "1") && d.sDeliveryDomain != req.Host {
-		u := url.URL{Scheme: "http", Host: d.sDeliveryDomain, Path: req.URL.Path, RawQuery: req.URL.RawQuery}
+	if ok && (sdelivery[0] == "true" || sdelivery[0] == "1") && d.sDeliveryDomain != req.Host {
+		errCount++
+		u = url.URL{Scheme: "http", Host: d.sDeliveryDomain, Path: req.URL.Path, RawQuery: req.URL.RawQuery}
 		log.Printf("sdelivery: %+v, redirect to %s", sdelivery, u.String())
-		http.Redirect(rw, req, u.String(), http.StatusSeeOther)
-		return
 	}
 
 	// dir
 	dir, ok := queryValues["dir"]
 	if ok && (dir[0] == "true" || dir[0] == "1") && d.storeDirectoryDomain != req.Host {
-		u := url.URL{Scheme: "https", Host: d.storeDirectoryDomain, Path: req.URL.Path, RawQuery: req.URL.RawQuery}
+		errCount++
+		u = url.URL{Scheme: "https", Host: d.storeDirectoryDomain, Path: req.URL.Path, RawQuery: req.URL.RawQuery}
 		log.Printf("dir: %+v, redirect to %s", dir, u.String())
+	}
+
+	// prevent infinite loop
+	if errCount > 1 {
+		u = url.URL{Scheme: "https", Host: d.dimdanDomain, Path: req.URL.Path, RawQuery: req.URL.RawQuery}
+		log.Printf("default: %+v, redirect to %s", dir, u.String())
+	}
+
+	if errCount > 0 {
 		http.Redirect(rw, req, u.String(), http.StatusSeeOther)
 		return
 	}
