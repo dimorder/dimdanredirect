@@ -144,6 +144,10 @@ func (d *DimdanRedirect) decrypt(text string) string {
 	key := []byte(d.key)
 
 	parts := strings.Split(text, "::")
+	if len(parts) != 2 {
+		log.Println("x incorrect")
+		return ""
+	}
 	iv, _ := hex.DecodeString(parts[0])
 	encryptedStr, _ := hex.DecodeString(parts[1])
 
