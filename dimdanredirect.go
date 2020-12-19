@@ -127,6 +127,7 @@ func (d *DimdanRedirect) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if req.Host != urlTypeDomainMap[urlType][0] {
 		u := url.URL{
 			Scheme:   "https",
+			Host:     urlTypeDomainMap[urlType][0],
 			Path:     req.URL.Path,
 			RawQuery: "x=" + d.encrypt(req.URL.RawQuery),
 		}
