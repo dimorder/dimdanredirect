@@ -102,25 +102,25 @@ func (d *DimdanRedirect) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	// takeaway
 	takeaway, ok := queryValues["takeaway"]
-	if ok && (takeaway[0] == "true" || takeaway[0] == "1") {
+	if ok && checkStringIsTrue(takeaway[0]) {
 		urlType = "takeaway"
 	}
 
 	// shop
 	shop, ok := queryValues["shop"]
-	if ok && (shop[0] == "true" || shop[0] == "1") {
+	if ok && checkStringIsTrue(shop[0]) {
 		urlType = "shop"
 	}
 
 	// sdelivery
 	sdelivery, ok := queryValues["sdelivery"]
-	if ok && (sdelivery[0] == "true" || sdelivery[0] == "1") {
+	if ok && checkStringIsTrue(sdelivery[0]) {
 		urlType = "sdelivery"
 	}
 
 	// dir
 	dir, ok := queryValues["dir"]
-	if ok && (dir[0] == "true" || dir[0] == "1") {
+	if ok && checkStringIsTrue(dir[0]) {
 		urlType = "directory"
 	}
 
@@ -192,4 +192,11 @@ func (d *DimdanRedirect) encrypt(text string) string {
 
 	encodedStr := hex.EncodeToString(iv) + "::" + hex.EncodeToString(ciphertext[aes.BlockSize:])
 	return encodedStr
+}
+
+func checkStringIsTrue(value string) bool {
+	if value == "true" || value == "1" {
+		return true
+	}
+	return false
 }
