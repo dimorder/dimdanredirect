@@ -102,6 +102,9 @@ func (d *DimdanRedirect) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	log.Print("queryValues")
+	log.Print(queryValues)
+
 	// dimdan
 	t, okT := queryValues["t"]
 	m, okM := queryValues["m"]
