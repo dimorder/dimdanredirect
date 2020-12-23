@@ -112,24 +112,28 @@ func (d *DimdanRedirect) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// takeaway
 	takeaway, ok := queryValues["takeaway"]
 	if ok && checkStringIsTrue(takeaway[0]) {
+		log.Printf("takeaway: %s", takeaway[0])
 		urlType = "takeaway"
 	}
 
 	// shop
 	shop, ok := queryValues["shop"]
 	if ok && checkStringIsTrue(shop[0]) {
+		log.Printf("shop: %s", shop[0])
 		urlType = "shop"
 	}
 
 	// sdelivery
 	sdelivery, ok := queryValues["sdelivery"]
 	if ok && checkStringIsTrue(sdelivery[0]) {
+		log.Printf("sdelivery: %s", sdelivery[0])
 		urlType = "sdelivery"
 	}
 
 	// dir
 	dir, ok := queryValues["dir"]
 	if ok && checkStringIsTrue(dir[0]) {
+		log.Printf("dir: %s", dir[0])
 		urlType = "directory"
 	}
 
