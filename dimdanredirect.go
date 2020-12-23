@@ -73,15 +73,24 @@ func New(ctx context.Context, next http.Handler, config *Config, name string) (h
 	}, nil
 }
 
+func contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
 func (d *DimdanRedirect) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	queryValues := req.URL.Query()
 	urlType := ""
 	urlTypeDomainMap := map[string][]string{
-		"dine-in":   {d.dimdanDomain},
-		"takeaway":  {d.takeawayDomain},
-		"shop":      {d.shopDomain},
-		"sdelivery": {d.sDeliveryDomain},
-		"directory": {d.storeDirectoryDomain},
+		"dine-in":   strings.Split(d.dimdanDomain, ","),
+		"takeaway":  strings.Split(d.takeawayDomain, ","),
+		"shop":      strings.Split(d.shopDomain, ","),
+		"sdelivery": strings.Split(d.sDeliveryDomain, ","),
+		"directory": strings.Split(d.storeDirectoryDomain, ","),
 	}
 
 	x, ok := queryValues["x"]
@@ -124,7 +133,7 @@ func (d *DimdanRedirect) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		urlType = "directory"
 	}
 
-	if urlType != "" && req.Host != urlTypeDomainMap[urlType][0] {
+	if urlType != "" && !contains(urlTypeDomainMap[urlType], req.Host) {
 		u := url.URL{
 			Scheme:   "https",
 			Host:     urlTypeDomainMap[urlType][0],
