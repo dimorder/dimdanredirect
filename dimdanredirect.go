@@ -141,7 +141,8 @@ func (d *DimdanRedirect) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			RawQuery: "x=" + d.encrypt(req.URL.RawQuery),
 		}
 
-		log.Printf("redirect frmo %s", req.Host)
+		log.Printf("redirect type %s", urlType)
+		log.Printf("redirect from %s", req.Host)
 		log.Printf("redirect to %s", u.String())
 		http.Redirect(rw, req, u.String(), http.StatusSeeOther)
 		return
